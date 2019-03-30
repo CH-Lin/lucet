@@ -357,3 +357,48 @@ dec_enc_scalar!(
     enc_whence,
     enc_whence_byref
 );
+
+pub fn dec_subscription(
+    subscription: &wasm32::__wasi_subscription_t,
+) -> Result<host::__wasi_subscription_t, host::__wasi_errno_t> {
+    let userdata = subscription.userdata;
+    let type_ = subscription.type_;
+    let u_orig = subscription.__bindgen_anon_1;
+    let u = match type_ {
+        wasm32::__WASI_EVENTTYPE_CLOCK => host::__wasi_subscription_t___wasi_subscription_u {
+            clock: unsafe {
+                host::__wasi_subscription_t___wasi_subscription_u___wasi_subscription_u_clock_t {
+                    identifier: u_orig.clock.identifier,
+                    clock_id: u_orig.clock.clock_id,
+                    timeout: u_orig.clock.timeout,
+                    precision: u_orig.clock.precision,
+                    flags: u_orig.clock.flags,
+                }
+            },
+        },
+        wasm32::__WASI_EVENTTYPE_FD_READ | wasm32::__WASI_EVENTTYPE_FD_WRITE =>  host::__wasi_subscription_t___wasi_subscription_u {
+            fd_readwrite:  host::__wasi_subscription_t___wasi_subscription_u___wasi_subscription_u_fd_readwrite_t {
+                fd: unsafe{u_orig.fd_readwrite.fd}
+            }
+        },
+        _  => return Err(wasm32::__WASI_EINVAL)
+    };
+    Ok(host::__wasi_subscription_t { userdata, type_, u })
+}
+
+pub fn enc_event(event: host::__wasi_event_t) -> wasm32::__wasi_event_t {
+    let fd_readwrite = unsafe { event.u.fd_readwrite };
+    wasm32::__wasi_event_t {
+        userdata: event.userdata,
+        type_: event.type_,
+        error: event.error,
+        __bindgen_anon_1: wasm32::__wasi_event_t__bindgen_ty_1 {
+            fd_readwrite: wasm32::__wasi_event_t__bindgen_ty_1__bindgen_ty_1 {
+                nbytes: fd_readwrite.nbytes,
+                flags: fd_readwrite.flags,
+                __bindgen_padding_0: [0; 3],
+            },
+        },
+        __bindgen_padding_0: 0,
+    }
+}
